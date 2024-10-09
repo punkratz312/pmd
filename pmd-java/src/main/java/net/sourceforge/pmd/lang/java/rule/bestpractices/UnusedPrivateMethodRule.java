@@ -4,6 +4,18 @@
 
 package net.sourceforge.pmd.lang.java.rule.bestpractices;
 
+import static net.sourceforge.pmd.util.CollectionUtil.listOf;
+import static net.sourceforge.pmd.util.CollectionUtil.setOf;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.commons.lang3.StringUtils;
+
 import net.sourceforge.pmd.lang.ast.NodeStream;
 import net.sourceforge.pmd.lang.java.ast.ASTAnnotation;
 import net.sourceforge.pmd.lang.java.ast.ASTCompilationUnit;
@@ -13,219 +25,116 @@ import net.sourceforge.pmd.lang.java.ast.ASTMethodDeclaration;
 import net.sourceforge.pmd.lang.java.ast.ASTMethodReference;
 import net.sourceforge.pmd.lang.java.ast.JavaNode;
 import net.sourceforge.pmd.lang.java.ast.MethodUsage;
+import net.sourceforge.pmd.lang.java.ast.ModifierOwner.Visibility;
+import net.sourceforge.pmd.lang.java.ast.internal.PrettyPrintingUtil;
 import net.sourceforge.pmd.lang.java.rule.internal.AbstractIgnoredAnnotationRule;
 import net.sourceforge.pmd.lang.java.symbols.JExecutableSymbol;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
-import static java.util.Objects.nonNull;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toSet;
-import static java.util.stream.Stream.concat;
-import static net.sourceforge.pmd.lang.java.ast.ModifierOwner.Visibility.V_PRIVATE;
-import static net.sourceforge.pmd.lang.java.ast.internal.PrettyPrintingUtil.displaySignature;
-import static net.sourceforge.pmd.lang.java.types.TypeTestUtil.isA;
-import static net.sourceforge.pmd.util.CollectionUtil.listOf;
-import static net.sourceforge.pmd.util.CollectionUtil.setOf;
-import static net.sourceforge.pmd.util.CollectionUtil.toMutableSet;
-import static org.apache.commons.lang3.ObjectUtils.notEqual;
+import net.sourceforge.pmd.lang.java.types.TypeTestUtil;
+import net.sourceforge.pmd.util.CollectionUtil;
 
 /**
- * This rule identifies private methods that are never used within the code
- * and can be safely removed. It aims to improve code maintainability
- * by eliminating unnecessary methods.
+ * This rule detects private methods, that are not used and can therefore be
+ * deleted.
  */
 public class UnusedPrivateMethodRule extends AbstractIgnoredAnnotationRule {
 
     private static final Set<String> SERIALIZATION_METHODS =
-            setOf("readObject", "writeObject", "readResolve", "writeReplace");
+        setOf("readObject", "writeObject", "readResolve", "writeReplace");
 
-    /**
-     * Visits the compilation unit and checks for unused private methods.
-     * <p>
-     * This involves three main steps:
-     * <ol>
-     * <li>Identify methods referenced by annotations.</li>
-     * <li>Identify potentially unused private methods.</li>
-     * <li>Track method references to determine if any identified
-     * methods are actually used.</li>
-     * </ol>
-     *
-     * @param compilationUnit the compilation unit being analyzed
-     * @param data            additional data for reporting violations
-     * @return null
-     */
-    @Override
-    public Object visit(ASTCompilationUnit compilationUnit, Object data) {
-        reportUnusedPrivateMethods(data, trackMethodReferences(
-                compilationUnit,
-                identifyUnusedPrivateMethods(
-                        compilationUnit,
-                        findMethodsUsedByAnnotations(compilationUnit))));
-        return null;
-    }
-
-    /**
-     * Identifies and returns a map of unused private methods in the specified
-     * compilation unit.
-     *
-     * @param compilationUnit          the compilation unit being analyzed
-     * @param methodsUsedByAnnotations a set of method names that are referenced via annotations
-     * @return a map where keys are method names and values are sets of
-     * corresponding unused method declarations
-     */
-    private Map<String, Set<ASTMethodDeclaration>> identifyUnusedPrivateMethods(final ASTCompilationUnit compilationUnit,
-                                                                                final Set<String> methodsUsedByAnnotations) {
-        return compilationUnit.descendants(ASTMethodDeclaration.class)
-                .crossFindBoundaries()
-                .filter(method -> method.getVisibility() == V_PRIVATE)
-                .filter(method -> !hasIgnoredAnnotation(method)
-                        && !isSerializationMethod(method)
-                        && !(method.getArity() == 0 && methodsUsedByAnnotations.contains(method.getName())))
-                .toStream()
-                .collect(groupingBy(ASTMethodDeclaration::getName, HashMap::new, toMutableSet()));
-    }
-
-    /**
-     * Checks if the specified method is related to serialization
-     * based on its name.
-     *
-     * @param method the method declaration to check
-     * @return true if the method is a serialization method, false otherwise
-     */
-    private boolean isSerializationMethod(ASTMethodDeclaration method) {
-        return SERIALIZATION_METHODS.contains(method.getName());
-    }
-
-    /**
-     * Finds and returns method names that are used via annotations within the
-     * provided compilation unit.
-     *
-     * @param compilationUnit the compilation unit being analyzed
-     * @return a set of method names that are referenced via annotations
-     */
-    private static Set<String> findMethodsUsedByAnnotations(final ASTCompilationUnit compilationUnit) {
-        return compilationUnit.descendants(ASTAnnotation.class)
-                .crossFindBoundaries()
-                .toStream()
-                .flatMap(annotation -> concat(
-                                annotation.getFlatValues().toStream()
-                                        .map(ASTMemberValue::getConstValue)
-                                        .filter(String.class::isInstance)
-                                        .map(String.class::cast)
-                                        .filter(StringUtils::isNotEmpty),
-                                NodeStream.of(annotation)
-                                        .filter(it -> isA("org.junit.jupiter.params.provider.MethodSource", it)
-                                                && it.getFlatValue("value").isEmpty())
-                                        .ancestors(ASTMethodDeclaration.class)
-                                        .take(1)
-                                        .toStream()
-                                        .map(ASTMethodDeclaration::getName)
-                        )
-                )
-                .collect(toSet());
-    }
-
-    /**
-     * Tracks method references within the given compilation unit and removes
-     * methods from the unused methods map if they are invoked.
-     *
-     * @param compilationUnit      the compilation unit being analyzed
-     * @param unusedPrivateMethods a map of unused private methods to check
-     * @return the updated map of unused private methods
-     */
-    private static Map<String, Set<ASTMethodDeclaration>> trackMethodReferences(final ASTCompilationUnit compilationUnit,
-                                                                                final Map<String,
-                                                                                        Set<ASTMethodDeclaration>> unusedPrivateMethods) {
-        compilationUnit.descendants()
-                .crossFindBoundaries()
-                .map(NodeStream.<MethodUsage>asInstanceOf(ASTMethodCall.class, ASTMethodReference.class))
-                .forEach(ref -> {
-                    if (!unusedPrivateMethods.containsKey(ref.getMethodName())) {
-                        return; // early exit
-                    }
-                    removeIfUnused(ref,
-                            unusedPrivateMethods,
-                            unusedPrivateMethods.get(ref.getMethodName()));
-                });
-        return unusedPrivateMethods;
-    }
-
-    /**
-     * Retrieves the method or reference associated with the given method usage.
-     *
-     * @param ref the method usage reference
-     * @return the associated executable symbol for the method reference
-     */
-    private static JExecutableSymbol getMethodOrReference(final MethodUsage ref) {
-        return ref instanceof ASTMethodCall
-                ? ((ASTMethodCall) ref).getMethodType().getSymbol()
-                : ((ASTMethodReference) ref).getReferencedMethod().getSymbol();
-    }
-
-    /**
-     * Processes a method reference and removes the method from the unused set
-     * if it is called from outside its own definition.
-     *
-     * @param ref                    the method usage reference
-     * @param unusedPrivateMethods   the map of unused private methods
-     * @param remainingUnusedMethods the set of remaining unused methods
-     */
-    private static void removeIfUnused(final MethodUsage ref,
-                                       final Map<String, Set<ASTMethodDeclaration>> unusedPrivateMethods,
-                                       final Set<ASTMethodDeclaration> remainingUnusedMethods) {
-        removeIfUnused(getMethodOrReference(ref).tryGetNode(), ref, remainingUnusedMethods, unusedPrivateMethods);
-    }
-
-    /**
-     * Checks if the referenced method is unused, and removes it from the
-     * unused methods set if it is invoked from outside its own definition.
-     *
-     * @param referencedNode         the referenced method declaration node
-     * @param ref                    the method usage reference
-     * @param remainingUnusedMethods the set of remaining unused methods
-     * @param unusedPrivateMethods   the map of unused private methods
-     */
-    private static void removeIfUnused(final JavaNode referencedNode, final MethodUsage ref,
-                                       final Set<ASTMethodDeclaration> remainingUnusedMethods,
-                                       final Map<String, Set<ASTMethodDeclaration>> unusedPrivateMethods) {
-        if (referencedNode instanceof ASTMethodDeclaration
-                && notEqual(ref.ancestors(ASTMethodDeclaration.class).first(), referencedNode)
-                && nonNull(remainingUnusedMethods)
-                && remainingUnusedMethods.remove(referencedNode) // note: side effect
-                && remainingUnusedMethods.isEmpty()) {
-            unusedPrivateMethods.remove(ref.getMethodName()); // clear this name
-        }
-    }
-
-    /**
-     * Reports the methods that remain unused after analysis.
-     *
-     * @param data                 additional data for reporting violations
-     * @param unusedPrivateMethods a map of unused private methods
-     */
-    private void reportUnusedPrivateMethods(final Object data,
-                                            final Map<String, Set<ASTMethodDeclaration>> unusedPrivateMethods) {
-        unusedPrivateMethods.forEach((methodName, unusedMethods)
-                -> unusedMethods.forEach(method -> asCtx(data).addViolation(method, displaySignature(method))));
-    }
-
-    /**
-     * Provides the default list of annotations that can suppress the
-     * reporting of unused private methods.
-     *
-     * @return a collection of suppression annotations
-     */
     @Override
     protected Collection<String> defaultSuppressionAnnotations() {
         return listOf(
-                "java.lang.Deprecated",
-                "jakarta.annotation.PostConstruct",
-                "jakarta.annotation.PreDestroy"
+            "java.lang.Deprecated",
+            "jakarta.annotation.PostConstruct",
+            "jakarta.annotation.PreDestroy"
         );
+    }
+
+    @Override
+    public Object visit(ASTCompilationUnit file, Object param) {
+        // We do three traversals:
+        // - one to find methods:
+        // --- referenced by any attribute of any annotation
+        // --- with name same as a method annotated with Junit5 MethodSource if the annotation value is empty
+        // - one to find the "interesting methods", ie those that may be violations
+        // - another to find the possible usages. We only try to resolve
+        //   method calls/method refs that may refer to a method in the
+        //   first set, ie, not every call in the file.
+        Set<String> methodsUsedByAnnotations =
+                file.descendants(ASTAnnotation.class)
+                        .crossFindBoundaries()
+                        .toStream()
+                        .flatMap(a -> Stream.concat(
+                                        a.getFlatValues().toStream()
+                                                .map(ASTMemberValue::getConstValue)
+                                                .filter(String.class::isInstance)
+                                                .map(String.class::cast)
+                                                .filter(StringUtils::isNotEmpty),
+                                        NodeStream.of(a)
+                                                .filter(it -> TypeTestUtil.isA("org.junit.jupiter.params.provider.MethodSource", it)
+                                                        && it.getFlatValue("value").isEmpty())
+                                                .ancestors(ASTMethodDeclaration.class)
+                                                .take(1)
+                                                .toStream()
+                                                .map(ASTMethodDeclaration::getName)
+                                )
+                        )
+                        .collect(Collectors.toSet());
+
+        Map<String, Set<ASTMethodDeclaration>> consideredNames =
+            file.descendants(ASTMethodDeclaration.class)
+                .crossFindBoundaries()
+                // get methods whose usages are all in this file
+                // TODO we could use getEffectiveVisibility here, but we need to consider overrides then.
+                .filter(it -> it.getVisibility() == Visibility.V_PRIVATE)
+                .filter(it -> !hasIgnoredAnnotation(it)
+                        && !hasExcludedName(it) 
+                        && !(it.getArity() == 0 && methodsUsedByAnnotations.contains(it.getName())))
+                .toStream()
+                .collect(Collectors.groupingBy(ASTMethodDeclaration::getName, HashMap::new, CollectionUtil.toMutableSet()));
+
+        file.descendants()
+            .crossFindBoundaries()
+            .map(NodeStream.<MethodUsage>asInstanceOf(ASTMethodCall.class, ASTMethodReference.class))
+            .forEach(ref -> {
+                String methodName = ref.getMethodName();
+                // the considered names might be mutated during the traversal
+                if (!consideredNames.containsKey(methodName)) {
+                    return;
+                }
+                JExecutableSymbol sym;
+                if (ref instanceof ASTMethodCall) {
+                    sym = ((ASTMethodCall) ref).getMethodType().getSymbol();
+                } else if (ref instanceof ASTMethodReference) {
+                    sym = ((ASTMethodReference) ref).getReferencedMethod().getSymbol();
+                } else {
+                    return;
+                }
+
+                JavaNode reffed = sym.tryGetNode();
+                if (reffed instanceof ASTMethodDeclaration
+                    && ref.ancestors(ASTMethodDeclaration.class).first() != reffed) {
+                    // remove from set, but only if it is called outside of itself
+                    Set<ASTMethodDeclaration> remainingUnused = consideredNames.get(methodName);
+                    if (remainingUnused != null
+                        && remainingUnused.remove(reffed) // note: side-effect
+                        && remainingUnused.isEmpty()) {
+                        consideredNames.remove(methodName); // clear this name
+                    }
+                }
+            });
+
+        // those that remain are unused
+        consideredNames.forEach((name, unused) -> {
+            for (ASTMethodDeclaration m : unused) {
+                asCtx(param).addViolation(m, PrettyPrintingUtil.displaySignature(m));
+            }
+        });
+
+        return null;
+    }
+
+    private boolean hasExcludedName(ASTMethodDeclaration node) {
+        return SERIALIZATION_METHODS.contains(node.getName());
     }
 }

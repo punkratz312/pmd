@@ -16,92 +16,54 @@ public class Foo {
         ]]></code>
     </test-code>
     <test-code>
-        <description>greetPrivate</description>
-        <expected-problems>1</expected-problems>
-        <code>
-            <![CDATA[
-                public class Foo {
-
-                    public void bar() {
-                        foo();
-                    }
-
-                    private void foo() {}
-
-                    private void greet(String name) {
-                    }
-                }
-            ]]>
-        </code>
+        <description>public method called by public method</description>
+        <expected-problems>0</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    public void bar() {
+        foo();
+    }
+    public void foo() {}
+}
+        ]]></code>
     </test-code>
     <test-code>
-        <description>greetPublic</description>
+        <description>public method not called by public method</description>
         <expected-problems>1</expected-problems>
-        <code>
-            <![CDATA[
-                public class Foo {
-
-                    public void bar() {
-                        foo();
-                    }
-
-                    private void foo() {}
-
-                    public void greet(String name) {
-                    }
-                }
-            ]]>
-        </code>
+        <code><![CDATA[
+public class Foo {
+    public void bar() {
+    }
+    public void foo() {}
+}
+        ]]></code>
     </test-code>
-    <!--    <test-code>-->
-    <!--        <description>get6</description>-->
-    <!--        <expected-problems>6</expected-problems>-->
-    <!--        <code>-->
-    <!--            <![CDATA[-->
-    <!--                public class Foo {-->
-    <!--                    public void bar() {-->
-    <!--                        foo();-->
-    <!--                    }-->
-
-    <!--                    private void foo() {}-->
-
-    <!--                    public void get2() {}-->
-
-    <!--                    void get3() {}-->
-
-    <!--                    void get4(String s) {}-->
-
-    <!--                    String get5(UUID s) {-->
-    <!--                        return s.toString();-->
-    <!--                    }-->
-
-    <!--                    private String get6(UUID s) {-->
-    <!--                        s = null;-->
-    <!--                        return s.toString();-->
-    <!--                    }-->
-
-    <!--                    private void greet(String name) {-->
-    <!--                        name = "";-->
-    <!--                        name = null;-->
-    <!--                        name = "";-->
-    <!--                        name = name.trim();-->
-
-    <!--                        System.out.println("Hello " + name);-->
-
-    <!--                        String trimmedName = name.trim();-->
-    <!--                        System.out.println("Hello " + trimmedName);-->
-    <!--                    }-->
-    <!--                }-->
-    <!--            ]]>-->
-    <!--        </code>-->
-    <!--    </test-code>-->
-
+    <test-code>
+        <description>protected method not called by public method</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    public void bar() {
+    }
+    protected void foo() {}
+}
+        ]]></code>
+    </test-code>
     <test-code>
         <description>simple unused private method</description>
         <expected-problems>1</expected-problems>
         <code><![CDATA[
 public class Foo {
     private void foo() {}
+}
+        ]]></code>
+    </test-code>
+    <test-code>
+        <description>simple unused public method</description>
+        <expected-problems>1</expected-problems>
+        <code><![CDATA[
+public class Foo {
+    public void foo() {}
 }
         ]]></code>
     </test-code>

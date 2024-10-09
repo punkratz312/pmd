@@ -83,6 +83,7 @@ public class UnusedPrivateMethodRule extends AbstractIgnoredAnnotationRule {
                                                                                 final Set<String> methodsUsedByAnnotations) {
         return compilationUnit.descendants(ASTMethodDeclaration.class)
                 .crossFindBoundaries()
+//                .filter(method -> method.getVisibility() == V_PRIVATE)
                 .filter(method -> !hasIgnoredAnnotation(method)
                         && !isSerializationMethod(method)
                         && !(method.getArity() == 0 && methodsUsedByAnnotations.contains(method.getName())))

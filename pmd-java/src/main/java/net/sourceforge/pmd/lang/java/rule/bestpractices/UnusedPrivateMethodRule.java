@@ -26,7 +26,6 @@ import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.concat;
-import static net.sourceforge.pmd.lang.java.ast.ModifierOwner.Visibility.V_PRIVATE;
 import static net.sourceforge.pmd.lang.java.ast.internal.PrettyPrintingUtil.displaySignature;
 import static net.sourceforge.pmd.lang.java.types.TypeTestUtil.isA;
 import static net.sourceforge.pmd.util.CollectionUtil.listOf;
@@ -61,9 +60,13 @@ public class UnusedPrivateMethodRule extends AbstractIgnoredAnnotationRule {
      */
     @Override
     public Object visit(ASTCompilationUnit compilationUnit, Object data) {
-        reportUnusedPrivateMethods(data,
-                trackMethodReferences(compilationUnit,
-                        identifyUnusedPrivateMethods(compilationUnit, findMethodsUsedByAnnotations(compilationUnit))));
+        reportUnusedPrivateMethods(
+                data,
+                trackMethodReferences(
+                        compilationUnit,
+                        identifyUnusedPrivateMethods(
+                                compilationUnit,
+                                findMethodsUsedByAnnotations(compilationUnit))));
         return null;
     }
 
@@ -80,7 +83,6 @@ public class UnusedPrivateMethodRule extends AbstractIgnoredAnnotationRule {
                                                                                 final Set<String> methodsUsedByAnnotations) {
         return compilationUnit.descendants(ASTMethodDeclaration.class)
                 .crossFindBoundaries()
-                .filter(method -> method.getVisibility() == V_PRIVATE)
                 .filter(method -> !hasIgnoredAnnotation(method)
                         && !isSerializationMethod(method)
                         && !(method.getArity() == 0 && methodsUsedByAnnotations.contains(method.getName())))
@@ -208,11 +210,8 @@ public class UnusedPrivateMethodRule extends AbstractIgnoredAnnotationRule {
      */
     private void reportUnusedPrivateMethods(final Object data,
                                             final Map<String, Set<ASTMethodDeclaration>> unusedPrivateMethods) {
-        unusedPrivateMethods.forEach((methodName, unusedMethods) -> {
-            for (ASTMethodDeclaration method : unusedMethods) {
-                asCtx(data).addViolation(method, displaySignature(method));
-            }
-        });
+        unusedPrivateMethods.forEach((methodName, unusedMethods)
+                -> unusedMethods.forEach(method -> asCtx(data).addViolation(method, displaySignature(method))));
     }
 
     /**

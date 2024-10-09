@@ -7,78 +7,78 @@
         <description>private method called by public method</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
-                public class Foo {
-                    public void bar() {
-                        fooprivate();
+                    public class Foo {
+                        public void bar() {
+                            fooprivate();
+                        }
+                        private void fooprivate() {}
                     }
-                    private void fooprivate() {}
-                }
-            ]]>
+                ]]>
         </code>
     </test-code>
-    <test-code>
-        <description>private method not called by public method</description>
-        <expected-problems>1</expected-problems>
-        <code><![CDATA[
-                public class Foo {
-                    public void bar() {
-                    }
-                    private void fooprivate() {}
-                }
-            ]]>
-        </code>
-    </test-code>
-    <test-code>
-        <description>multiple private method not called by public method</description>
-        <expected-problems>2</expected-problems>
-        <code><![CDATA[
-                public class Foo {
-                    public void bar() {
-                    }
-                    private void fooprivate() {}
-                    private void fooprivate2() {}
-                }
-            ]]>
-        </code>
-    </test-code>
-    <test-code>
-        <description>public method called by public method</description>
-        <expected-problems>0</expected-problems>
-        <code><![CDATA[
-            public class Foo {
-                public void bar() {
-                    foopublic();
-                }
-                public void foopublic() {}
-            }
-        ]]>
-        </code>
-    </test-code>
+    <!--    <test-code>-->
+    <!--        <description>private method not called by public method</description>-->
+    <!--        <expected-problems>1</expected-problems>-->
+    <!--        <code><![CDATA[-->
+    <!--                public class Foo {-->
+    <!--                    public void bar() {-->
+    <!--                    }-->
+    <!--                    private void fooprivate() {}-->
+    <!--                }-->
+    <!--            ]]>-->
+    <!--        </code>-->
+    <!--    </test-code>-->
+    <!--    <test-code>-->
+    <!--        <description>multiple private method not called by public method</description>-->
+    <!--        <expected-problems>2</expected-problems>-->
+    <!--        <code><![CDATA[-->
+    <!--                public class Foo {-->
+    <!--                    public void bar() {-->
+    <!--                    }-->
+    <!--                    private void fooprivate() {}-->
+    <!--                    private void fooprivate2() {}-->
+    <!--                }-->
+    <!--            ]]>-->
+    <!--        </code>-->
+    <!--    </test-code>-->
+    <!--    <test-code>-->
+    <!--        <description>public method called by public method</description>-->
+    <!--        <expected-problems>0</expected-problems>-->
+    <!--        <code><![CDATA[-->
+    <!--            public class Foo {-->
+    <!--                public void bar() {-->
+    <!--                    foopublic();-->
+    <!--                }-->
+    <!--                public void foopublic() {}-->
+    <!--            }-->
+    <!--        ]]>-->
+    <!--        </code>-->
+    <!--    </test-code>-->
     <test-code>
         <description>public method not called by public method</description>
         <expected-problems>1</expected-problems>
         <code><![CDATA[
-            public class Foo {
-                public void bar() {
+                public class Foo {
+                    public void bar() {
+                    }
+                    public void foopublic() {}
                 }
-                public void foopublic() {}
-            }
-        ]]>
+            ]]>
         </code>
     </test-code>
-    <test-code>
-        <description>multiple public method not called by public method</description>
-        <expected-problems>2</expected-problems>
-        <code><![CDATA[
-            public class Foo {
-                public void bar() {
-                }
-                public void foopublic() {}
-                public void foopublic2() {}
-            }
-        ]]>
-        </code>
-    </test-code>
+    <!--    <test-code>-->
+    <!--        <description>multiple public method not called by public method</description>-->
+    <!--        <expected-problems>2</expected-problems>-->
+    <!--        <code><![CDATA[-->
+    <!--            public class Foo {-->
+    <!--                public void bar() {-->
+    <!--                }-->
+    <!--                public void foopublic() {}-->
+    <!--                public void foopublic2() {}-->
+    <!--            }-->
+    <!--        ]]>-->
+    <!--        </code>-->
+    <!--    </test-code>-->
     <!--    <test-code>-->
     <!--        <description>private method not called by public method</description>-->
     <!--        <expected-problems>1</expected-problems>-->

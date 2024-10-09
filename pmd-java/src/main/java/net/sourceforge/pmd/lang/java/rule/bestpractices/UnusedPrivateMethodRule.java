@@ -61,14 +61,11 @@ public class UnusedPrivateMethodRule extends AbstractIgnoredAnnotationRule {
      */
     @Override
     public Object visit(ASTCompilationUnit compilationUnit, Object data) {
-        final Set<String> methodsUsedByAnnotations = findMethodsUsedByAnnotations(compilationUnit);
-        final Map<String, Set<ASTMethodDeclaration>> unusedPrivateMethods = identifyUnusedPrivateMethods(
+        reportUnusedPrivateMethods(data, trackMethodReferences(
                 compilationUnit,
-                methodsUsedByAnnotations);
-        final Map<String, Set<ASTMethodDeclaration>> unusedPrivateMethods1 = trackMethodReferences(
-                compilationUnit,
-                unusedPrivateMethods);
-        reportUnusedPrivateMethods(data, unusedPrivateMethods1);
+                identifyUnusedPrivateMethods(
+                        compilationUnit,
+                        findMethodsUsedByAnnotations(compilationUnit))));
         return null;
     }
 

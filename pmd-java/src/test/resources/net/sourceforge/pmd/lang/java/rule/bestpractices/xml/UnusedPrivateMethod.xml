@@ -16,17 +16,62 @@ public class Foo {
         ]]></code>
     </test-code>
     <test-code>
-        <description>private method called by public methodasdasd</description>
-        <expected-problems>0</expected-problems>
+        <description>get2</description>
+        <expected-problems>1</expected-problems>
         <code>
             <![CDATA[
-                        public class Foo {
-                        public void bar() {
+                public class Foo {
+                    public void bar() {
                         foo();
-                        }
-                        private void foo() {}
-                        }
-                        ]]>
+                    }
+
+                    private void foo() {}
+
+                    public void get2() {}
+                }
+        ]]>
+        </code>
+    </test-code>
+    <test-code>
+        <description>get6</description>
+        <expected-problems>6</expected-problems>
+        <code>
+            <![CDATA[
+                public class Foo {
+                    public void bar() {
+                        foo();
+                    }
+
+                    private void foo() {}
+
+                    public void get2() {}
+
+                    void get3() {}
+
+                    void get4(String s) {}
+
+                    String get5(UUID s) {
+                        return s.toString();
+                    }
+
+                    private String get6(UUID s) {
+                        s = null;
+                        return s.toString();
+                    }
+
+                    private void greet(String name) {
+                        name = "";
+                        name = null;
+                        name = "";
+                        name = name.trim();
+
+                        System.out.println("Hello " + name);
+
+                        String trimmedName = name.trim();
+                        System.out.println("Hello " + trimmedName);
+                    }
+                }
+        ]]>
         </code>
     </test-code>
 

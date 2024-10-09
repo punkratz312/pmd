@@ -7,12 +7,12 @@
         <description>public method called by public method</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
-                public class Foo {
-                    public void bar() {
-                        fooPublic();
-                    }
-                    public void fooPublic() {}
-                }
+public class Foo {
+    public void bar() {
+        fooPublic();
+    }
+    public void fooPublic() {}
+}
             ]]>
         </code>
     </test-code>
@@ -20,12 +20,12 @@
         <description>public method called by private method</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
-                public class Foo {
-                    private void bar() {
-                        fooPublic();
-                    }
-                    public void fooPublic() {}
-                }
+public class Foo {
+    private void bar() {
+        fooPublic();
+    }
+    public void fooPublic() {}
+}
             ]]>
         </code>
     </test-code>
@@ -33,12 +33,12 @@
         <description>private method called by public method</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
-                public class Foo {
-                    public void bar() {
-                        fooPrivate();
-                    }
-                    private void fooPrivate() {}
-                }
+public class Foo {
+    public void bar() {
+        fooPrivate();
+    }
+    private void fooPrivate() {}
+}
             ]]>
         </code>
     </test-code>
@@ -46,12 +46,12 @@
         <description>private method called by private method</description>
         <expected-problems>0</expected-problems>
         <code><![CDATA[
-                public class Foo {
-                    private void bar() {
-                        fooPrivate();
-                    }
-                    private void fooPrivate() {}
-                }
+public class Foo {
+    private void bar() {
+        fooPrivate();
+    }
+    private void fooPrivate() {}
+}
             ]]>
         </code>
     </test-code>
@@ -59,11 +59,11 @@
         <description>public method not called by public method</description>
         <expected-problems>1</expected-problems>
         <code><![CDATA[
-                public class Foo {
-                    public void bar() {
-                    }
-                    public void fooPublic() {}
-                }
+public class Foo {
+    public void bar() {
+    }
+    public void fooPublic() {}
+}
             ]]>
         </code>
     </test-code>
@@ -71,11 +71,11 @@
         <description>private method not called by public method</description>
         <expected-problems>1</expected-problems>
         <code><![CDATA[
-                public class Foo {
-                    public void bar() {
-                    }
-                    private void fooPrivate() {}
-                }
+public class Foo {
+    public void bar() {
+    }
+    private void fooPrivate() {}
+}
             ]]>
         </code>
     </test-code>
@@ -83,10 +83,10 @@
         <description>public and public method not called</description>
         <expected-problems>2</expected-problems>
         <code><![CDATA[
-                public class Foo {
-                    public void bar() {}
-                    public void fooPublic() {}
-                }
+public class Foo {
+    public void bar() {}
+    public void fooPublic() {}
+}
             ]]>
         </code>
     </test-code>
@@ -94,10 +94,10 @@
         <description>public and private method not called</description>
         <expected-problems>2</expected-problems>
         <code><![CDATA[
-                public class Foo {
-                    public void bar() {}
-                    private void fooPrivate() {}
-                }
+public class Foo {
+    public void bar() {}
+    private void fooPrivate() {}
+}
             ]]>
         </code>
     </test-code>
@@ -105,10 +105,10 @@
         <description>private and private method not called</description>
         <expected-problems>2</expected-problems>
         <code><![CDATA[
-                public class Foo {
-                    private void bar() {}
-                    private void fooPrivate() {}
-                }
+public class Foo {
+    private void bar() {}
+    private void fooPrivate() {}
+}
             ]]>
         </code>
     </test-code>

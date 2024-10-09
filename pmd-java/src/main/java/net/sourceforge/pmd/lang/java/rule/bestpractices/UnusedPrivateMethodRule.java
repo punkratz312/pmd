@@ -26,7 +26,6 @@ import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.concat;
-import static net.sourceforge.pmd.lang.java.ast.ModifierOwner.Visibility.V_PRIVATE;
 import static net.sourceforge.pmd.lang.java.ast.internal.PrettyPrintingUtil.displaySignature;
 import static net.sourceforge.pmd.lang.java.types.TypeTestUtil.isA;
 import static net.sourceforge.pmd.util.CollectionUtil.listOf;
@@ -84,7 +83,7 @@ public class UnusedPrivateMethodRule extends AbstractIgnoredAnnotationRule {
                                                                                 final Set<String> methodsUsedByAnnotations) {
         return compilationUnit.descendants(ASTMethodDeclaration.class)
                 .crossFindBoundaries()
-                .filter(method -> method.getVisibility() == V_PRIVATE)
+//                .filter(method -> method.getVisibility() == V_PRIVATE)
                 .filter(method -> !hasIgnoredAnnotation(method)
                         && !isSerializationMethod(method)
                         && !(method.getArity() == 0 && methodsUsedByAnnotations.contains(method.getName())))

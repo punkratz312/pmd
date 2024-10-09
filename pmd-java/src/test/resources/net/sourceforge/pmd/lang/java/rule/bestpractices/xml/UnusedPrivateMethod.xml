@@ -21,6 +21,7 @@ public class Foo {
         <code>
             <![CDATA[
                 public class Foo {
+
                     public void bar() {
                         foo();
                     }
@@ -29,7 +30,7 @@ public class Foo {
 
                     public void get2() {}
                 }
-        ]]>
+            ]]>
         </code>
     </test-code>
     <test-code>
@@ -71,7 +72,7 @@ public class Foo {
                         System.out.println("Hello " + trimmedName);
                     }
                 }
-        ]]>
+            ]]>
         </code>
     </test-code>
 

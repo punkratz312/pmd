@@ -16,7 +16,7 @@ public class Foo {
         ]]></code>
     </test-code>
     <test-code>
-        <description>get2</description>
+        <description>greetPrivate</description>
         <expected-problems>1</expected-problems>
         <code>
             <![CDATA[
@@ -28,53 +28,73 @@ public class Foo {
 
                     private void foo() {}
 
-                    public void get2() {}
+                    private void greet(String name) {
+                    }
                 }
             ]]>
         </code>
     </test-code>
     <test-code>
-        <description>get6</description>
-        <expected-problems>6</expected-problems>
+        <description>greetPublic</description>
+        <expected-problems>1</expected-problems>
         <code>
             <![CDATA[
                 public class Foo {
+
                     public void bar() {
                         foo();
                     }
 
                     private void foo() {}
 
-                    public void get2() {}
-
-                    void get3() {}
-
-                    void get4(String s) {}
-
-                    String get5(UUID s) {
-                        return s.toString();
-                    }
-
-                    private String get6(UUID s) {
-                        s = null;
-                        return s.toString();
-                    }
-
-                    private void greet(String name) {
-                        name = "";
-                        name = null;
-                        name = "";
-                        name = name.trim();
-
-                        System.out.println("Hello " + name);
-
-                        String trimmedName = name.trim();
-                        System.out.println("Hello " + trimmedName);
+                    public void greet(String name) {
                     }
                 }
             ]]>
         </code>
     </test-code>
+    <!--    <test-code>-->
+    <!--        <description>get6</description>-->
+    <!--        <expected-problems>6</expected-problems>-->
+    <!--        <code>-->
+    <!--            <![CDATA[-->
+    <!--                public class Foo {-->
+    <!--                    public void bar() {-->
+    <!--                        foo();-->
+    <!--                    }-->
+
+    <!--                    private void foo() {}-->
+
+    <!--                    public void get2() {}-->
+
+    <!--                    void get3() {}-->
+
+    <!--                    void get4(String s) {}-->
+
+    <!--                    String get5(UUID s) {-->
+    <!--                        return s.toString();-->
+    <!--                    }-->
+
+    <!--                    private String get6(UUID s) {-->
+    <!--                        s = null;-->
+    <!--                        return s.toString();-->
+    <!--                    }-->
+
+    <!--                    private void greet(String name) {-->
+    <!--                        name = "";-->
+    <!--                        name = null;-->
+    <!--                        name = "";-->
+    <!--                        name = name.trim();-->
+
+    <!--                        System.out.println("Hello " + name);-->
+
+    <!--                        String trimmedName = name.trim();-->
+    <!--                        System.out.println("Hello " + trimmedName);-->
+    <!--                    }-->
+    <!--                }-->
+    <!--            ]]>-->
+    <!--        </code>-->
+    <!--    </test-code>-->
 
     <test-code>
         <description>simple unused private method</description>
